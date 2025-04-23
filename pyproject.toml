@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "geosquare-grid"
+version = "0.1.0"
+description = "A library for converting geographic coordinates to grid identifiers (GIDs) and performing spatial operations."
+authors = ["Geosquare Team <admin@geosquare.ai>"]
+license = "Apache-2.0"
+readme = "README.md"
+homepage = "https://github.com/geosquareai/geosquare-grid"
+repository = "https://github.com/geosquareai/geosquare-grid"
+keywords = ["geography", "grid", "coordinates", "spatial", "GIS"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+shapely = "^1.8.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
