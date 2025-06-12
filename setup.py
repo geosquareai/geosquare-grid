@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='geosquare-grid',
-    version='0.1.0',
+    version='1.0.0',
     author='Geosquare Team',
     author_email='admin@geosquare.ai',
     description='A library for converting geographic coordinates to grid identifiers and performing spatial operations.',
