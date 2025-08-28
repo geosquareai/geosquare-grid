@@ -1,0 +1,10 @@
+include README.md
+include LICENSE
+include CONTRIBUTING.md
+include pyproject.toml
+include setup.cfg
+include setup.py
+recursive-include docs *
+recursive-include examples *
+recursive-include tests *
+recursive-include src/geosquare_grid *

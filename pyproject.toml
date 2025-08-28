@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "geosquare-grid"
+dynamic = ["version"]
+description = "A library for converting geographic coordinates to grid identifiers (GIDs) and performing spatial operations."
+authors = [{name = "Geosquare Team", email = "admin@geosquare.ai"}]
+license = {text = "GPL-3.0"}
+readme = "README.md"
+requires-python = ">=3.7"
+keywords = ["geography", "grid", "coordinates", "spatial", "GIS"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GPL Software License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "shapely>=2.0.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/geosquareai/geosquare-grid"
+Repository = "https://github.com/geosquareai/geosquare-grid"
+
+[project.optional-dependencies]
+testing = [
+    "pytest",
+    "pytest-cov",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools_scm]
+write_to = "src/geosquare_grid/_version.py"
