@@ -1,3 +1,4 @@
+import math
 from typing import List, Tuple, Union
 
 from shapely import intersection, wkt
@@ -102,7 +103,12 @@ class GeosquareGrid:
             10: 13, 5: 14, 1: 15,
         }
 
+
+    def _is_indonesia(self, longitude: float, latitude: float) -> bool:
+        return (95.0 <= longitude <= 141.0) and (-11.0 <= latitude <= 6.0)
+
     def lonlat_to_gid(self, longitude: float, latitude: float, level: int) -> str:
+
         """
         Convert geographic coordinates (longitude, latitude) to a geospatial grid identifier (GID).
         This method transforms coordinates into a string identifier representing a grid cell
@@ -137,10 +143,18 @@ class GeosquareGrid:
         assert -90 <= latitude <= 90, "Latitude must be between -90 and 90"
         assert 1 <= level <= 15, "Level must be between 1 and 15"
         
-        lat_ranged = (-216, 233.157642055036)
-        lon_ranged = (-217, 232.157642055036)
+        lat_ranged = (-216.0, 233.157642055036)
+        lon_ranged = (-217.0, 232.157642055036)
         gid = ""
         
+        if not self._is_indonesia(longitude, latitude):
+            zone_lat = int(round(latitude / 10.0)) * 10
+            zone_index = (zone_lat + 90) // 10
+            gid = chr(ord('a') + zone_index)
+            cos_lat = math.cos(math.radians(zone_lat))
+            if cos_lat < 1e-9: cos_lat = 1e-9
+            lon_ranged = (lon_ranged[0] / cos_lat, lon_ranged[1] / cos_lat)
+
         for part in self.d[:level]:
             position_x = int((longitude - lon_ranged[0]) / (lon_ranged[1] - lon_ranged[0]) * part)
             position_y = int((latitude - lat_ranged[0]) / (lat_ranged[1] - lat_ranged[0]) * part)
@@ -175,8 +189,16 @@ class GeosquareGrid:
         """
         
             
-        lat_ranged = (-216, 233.157642055036)
-        lon_ranged = (-217, 232.157642055036)
+        lat_ranged = (-216.0, 233.157642055036)
+        lon_ranged = (-217.0, 232.157642055036)
+
+        if gid and gid[0].islower():
+            zone_index = ord(gid[0]) - ord('a')
+            zone_lat = (zone_index * 10) - 90
+            cos_lat = math.cos(math.radians(zone_lat))
+            if cos_lat < 1e-9: cos_lat = 1e-9
+            lon_ranged = (lon_ranged[0] / cos_lat, lon_ranged[1] / cos_lat)
+            gid = gid[1:]
         
         for idx, char in enumerate(gid):
             part_x = (lon_ranged[1] - lon_ranged[0]) / self.d[idx]
@@ -212,8 +234,16 @@ class GeosquareGrid:
         """
         
             
-        lat_ranged = (-216, 233.157642055036)
-        lon_ranged = (-217, 232.157642055036)
+        lat_ranged = (-216.0, 233.157642055036)
+        lon_ranged = (-217.0, 232.157642055036)
+
+        if gid and gid[0].islower():
+            zone_index = ord(gid[0]) - ord('a')
+            zone_lat = (zone_index * 10) - 90
+            cos_lat = math.cos(math.radians(zone_lat))
+            if cos_lat < 1e-9: cos_lat = 1e-9
+            lon_ranged = (lon_ranged[0] / cos_lat, lon_ranged[1] / cos_lat)
+            gid = gid[1:]
         
         for idx, char in enumerate(gid):
             part_x = (lon_ranged[1] - lon_ranged[0]) / self.d[idx]
@@ -540,12 +570,14 @@ class GeosquareGrid:
         the target geometry.
         """
            
-        if initial_key != "2":
+        is_root = (initial_key == "2") or (len(initial_key) == 2 and initial_key[0].islower() and initial_key[1] == "2")
+        if not is_root:
             geometry = geometry.intersection(self.gid_to_geometry(initial_key))
         contained_keys = []
         def func(key, approved):
+            level = len(key) - 1 if key and key[0].islower() else len(key)
             if approved:
-                if resolution[0] <= len(key) <= resolution[1]:
+                if resolution[0] <= level <= resolution[1]:
                     contained_keys.append(key)
                 else:
                     for child_key in self._to_children(key):
@@ -555,7 +587,7 @@ class GeosquareGrid:
                     self.gid_to_geometry(key), geometry)
                 if area_ratio == 0:
                     last_idx = self.CODE_ALPHABET_[self.d[0]].index(key[-1])
-                    if (last_idx < 25) & (len(key) == 1):
+                    if (last_idx < 25) and (level == 1):
                         func(
                             key[:-1] + self.CODE_ALPHABET_[self.d[0]
                                                            ][last_idx + 1][0],
@@ -565,11 +597,11 @@ class GeosquareGrid:
                         return
                 elif area_ratio == 1:
                     func(key, True)
-                elif (len(key) == resolution[1]) & fullcover:
+                elif (level == resolution[1]) and fullcover:
                     contained_keys.append(key)
-                elif (len(key) == resolution[1]) & (area_ratio > 0.5) & (~fullcover):
+                elif (level == resolution[1]) and (area_ratio > 0.5) and (not fullcover):
                     contained_keys.append(key)
-                elif len(key) == resolution[1]:
+                elif level == resolution[1]:
                     return
                 else:
                     for child_key in self._to_children(key):
